@@ -38,17 +38,11 @@ module Audited
         # don't allow multiple calls
         return if self.included_modules.include?(Audited::Auditor::AuditedInstanceMethods)
 
-        class_attribute :non_audited_columns,   :instance_writer => false
         class_attribute :auditing_enabled,      :instance_writer => false
         class_attribute :audit_associated_with, :instance_writer => false
+        class_attribute :audited_options,       :instance_writer => false
 
-        if options[:only]
-          except = self.column_names - options[:only].flatten.map(&:to_s)
-        else
-          except = default_ignored_attributes + Audited.ignored_attributes
-          except |= Array(options[:except]).collect(&:to_s) if options[:except]
-        end
-        self.non_audited_columns = except
+        self.audited_options = options
         self.audit_associated_with = options[:associated_with]
 
         if options[:comment_required]
@@ -135,6 +129,10 @@ module Audited
       end
 
       protected
+
+      def non_audited_columns
+        self.class.non_audited_columns
+      end
 
       def revision_with(attributes)
         self.dup.tap do |revision|
@@ -230,6 +228,19 @@ module Audited
       # Returns an array of columns that are audited. See non_audited_columns
       def audited_columns
         self.columns.select { |c| !non_audited_columns.include?(c.name) }
+      end
+
+      def non_audited_columns
+        @non_audited_columns ||= begin
+          options = audited_options
+          if options[:only]
+            except = self.column_names - options[:only].flatten.map(&:to_s)
+          else
+            except = default_ignored_attributes + Audited.ignored_attributes
+            except |= Array(options[:except]).collect(&:to_s) if options[:except]
+          end
+          except
+        end
       end
 
       # Executes the block with auditing disabled.
