@@ -6,12 +6,14 @@ module Audited
     end
 
     module ClassMethods
+
       def setup_audit
         belongs_to :auditable,  :polymorphic => true
         belongs_to :user,       :polymorphic => true
         belongs_to :associated, :polymorphic => true
 
         before_create :set_version_number, :set_audit_user, :set_request_uuid
+        after_create :update_auditable_type
 
         cattr_accessor :audited_class_names
         self.audited_class_names = Set.new
@@ -87,7 +89,7 @@ module Audited
     def set_version_number
       max = self.class.where(
         :auditable_id => auditable_id,
-        :auditable_type => auditable_type
+        :auditable_type => self.class.auditable_type || auditable_type
       ).order(:version.desc).first.try(:version) || 0
       self.version = max + 1
     end
@@ -99,6 +101,10 @@ module Audited
 
     def set_request_uuid
       self.request_uuid ||= SecureRandom.uuid
+    end
+
+    def update_auditable_type
+      update_attributes(auditable_type: self.class.auditable_type) if self.class.auditable_type
     end
   end
 end
