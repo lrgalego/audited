@@ -89,7 +89,7 @@ module Audited
     def set_version_number
       max = self.class.where(
         :auditable_id => auditable_id,
-        :auditable_type => self.class.auditable_type || auditable_type
+        :auditable_type => auditable_type.constantize.try(:auditable_type) || auditable_type
       ).order(:version.desc).first.try(:version) || 0
       self.version = max + 1
     end
@@ -105,7 +105,9 @@ module Audited
 
     def update_auditable_type
       byebug
-      update_attributes(auditable_type: self.class.auditable_type) if self.class.auditable_type
+      custom = auditable_type.constantize.try(:auditable_type)
+      update_attributes(auditable_type: custom) if custom
     end
+
   end
 end
