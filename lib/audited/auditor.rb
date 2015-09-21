@@ -68,10 +68,6 @@ module Audited
 
         attr_accessor :version
 
-        class << self
-          attr_accessor :auditable_type
-        end
-
         extend Audited::Auditor::AuditedClassMethods
         include Audited::Auditor::AuditedInstanceMethods
 
