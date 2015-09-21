@@ -69,7 +69,6 @@ module Audited
         attr_accessor :version
 
         class << self
-          byebug
           attr_accessor :auditable_type
         end
 
