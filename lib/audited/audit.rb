@@ -104,6 +104,7 @@ module Audited
     end
 
     def update_auditable_type
+      byebug
       update_attributes(auditable_type: self.class.auditable_type) if self.class.auditable_type
     end
   end
