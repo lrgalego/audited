@@ -225,6 +225,8 @@ module Audited
     end # InstanceMethods
 
     module AuditedClassMethods
+      attr_accessor :auditable_type
+
       # Returns an array of columns that are audited. See non_audited_columns
       def audited_columns
         self.columns.select { |c| !non_audited_columns.include?(c.name) }
